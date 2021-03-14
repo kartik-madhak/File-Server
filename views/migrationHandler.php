@@ -24,7 +24,10 @@
                 $fluentDB = new FluentDB($modelName);
                 $arr = get_class_vars($modelName);
                 foreach ($arr as $k => $v) {
-                    $arr[$k] = (string)(new \ReflectionProperty($modelName, $k))->getType();
+                    try {
+                        $arr[$k] = (string)(new \ReflectionProperty($modelName, $k))->getType();
+                    } catch (ReflectionException $e) {
+                    }
                 }
                 echo $fluentDB->createTable($arr) == true ? 'Created table ' : 'Table already exists<br>';
             }
