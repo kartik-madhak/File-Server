@@ -12,8 +12,8 @@
         <div class="display-4">Login</div>
         <div>
             <form class="mt-3" action="/login" method="post">
-                <input class="form-control mt-2" type="email" placeholder="Email">
-                <input class="form-control mt-2" type="password" placeholder="Password">
+                <input class="form-control mt-2" type="email" placeholder="Email" name="email">
+                <input class="form-control mt-2" type="password" placeholder="Password" name="password">
                 <input type="submit" class="btn btn-outline-success mt-2">
             </form>
         </div>

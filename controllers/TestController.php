@@ -13,10 +13,33 @@ $router->get(
         function (Request $request, array $routeValues) {
             include('views/login.php');
         }
+        
     ]
 );
 
-
+$router->post(
+    '/login',
+    [
+        function (Request $request, array $routeValues) {
+            //include('views/home.php');
+            var_dump($request);
+        }
+    ]
+);
+$router->get(
+    '/temp',
+    [
+        function (Request $request, array $routeValues) {
+            //User::createTable();
+            $user= new User();
+            $user->name="arrow";
+            $user->password="123456";
+            $user->email_id="abhijeet@gmail.com";
+            $user->create();
+        }
+        
+    ]
+);
 //
 //$router->get(
 //    '/home',
