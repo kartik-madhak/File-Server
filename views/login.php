@@ -4,11 +4,22 @@
 <?php include('layout/head.php') ?>
 
 <body>
-<?php include('layout/navbar.php') ?>
 
-<h2>
-    LOGIN
-</h2>
+<div class="container text-center">
+    <div class="display-3 font-italic"><?php echo $_ENV['APP_NAME'] ?></div>
+    <div class="font-italic"><?php echo $_ENV['APP_MOTTO'] ?></div>
+    <div class="border rounded mt-5 p-4 w-50 mx-auto">
+        <div class="display-4">Login</div>
+        <div>
+            <form class="mt-3" action="/login" method="post">
+                <input class="form-control mt-2" type="email" placeholder="Email">
+                <input class="form-control mt-2" type="password" placeholder="Password">
+                <input type="submit" class="btn btn-outline-success mt-2">
+            </form>
+        </div>
+    </div>
+</div>
+
 </body>
 
 </html>
