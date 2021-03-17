@@ -40,6 +40,11 @@ class Router
         return false;
     }
 
+//    public function redirect($url)
+//    {
+//
+//    }
+
     public function run()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

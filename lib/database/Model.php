@@ -30,6 +30,12 @@ abstract class Model
         $fluentDB->createTable($arr);
     }
 
+    public static function drop()
+    {
+        $fluentDB = new FluentDB(get_called_class());
+        return $fluentDB->dropTable();
+    }
+
     public function create()
     {
         $fluentDB = new FluentDB(get_called_class());

@@ -8,5 +8,8 @@
         "psr-4": {
             "Lib\\": "lib/"
         }
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.2"
     }
 }

@@ -7,13 +7,32 @@ use Lib\services\SingletonServiceCreator;
 /** @var Router $router */
 $router = SingletonServiceCreator::get(Router::class);
 
+$Auth = function (Request $request, array $routeValues) {
+    session_id($_COOKIE['auth_session_id'];
+};
+
+$Home = function (Request $request, array $routeValues) {
+//    include()
+//    TODO
+};
+
 $router->get(
     '/',
     [
         function (Request $request, array $routeValues) {
             include('views/login.php');
         }
-        
+
+    ]
+);
+
+$router->get(
+    '/register',
+    [
+        function (Request $request, array $routeValues) {
+            include('views/register.php');
+        }
+
     ]
 );
 
@@ -21,23 +40,81 @@ $router->post(
     '/login',
     [
         function (Request $request, array $routeValues) {
-            //include('views/home.php');
-            var_dump($request);
+            $email = $request->inputs['POST']['email'];
+            $password = $request->inputs['POST']['password'];
+
+            $user = User::query()->select()->where('email', $email)->getFirstOrFalse();
+            if ($user == false) {
+                $error = 'Email not registered';
+                include('views/login.php');
+            } else {
+                if (password_verify($password, $user['password'])) {
+                    session_start();
+                    $arr_cookie_options = array(
+                        'expires' => time() + 86400,
+                        'secure' => false,     // or false
+                        'httponly' => true,    // or false
+                    );
+                    setcookie('auth_session_id', session_id(), $arr_cookie_options);
+                    $_SESSION['auth_user'] = $user;
+                    // TODO
+                } else {
+                    $error = 'Invalid Password';
+                    include('views/login.php');
+                }
+            }
         }
     ]
 );
-$router->get(
-    '/temp',
+
+$router->post(
+    '/register',
     [
         function (Request $request, array $routeValues) {
-            //User::createTable();
-            $user= new User();
-            $user->name="arrow";
-            $user->password="123456";
-            $user->email_id="abhijeet@gmail.com";
-            $user->create();
+            $name = $request->inputs['POST']['name'];
+
+            $password = $request->inputs['POST']['password'];
+            if (strlen($password) < 8) {
+                $error = 'Password must be at least 8 characters';
+                include('views/register.php');
+            } else {
+                $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                $email = $request->inputs['POST']['email'];
+
+                if (User::query()->select()->where('email', $email)->get() == false) {
+                    $user = new User;
+                    $user->name = $name;
+                    $user->password = $password_hash;
+                    $user->email = $email;
+                    $user->create();
+
+                    // TODO
+
+                } else {
+                    $error = 'Email already registered';
+                    include('views/register.php');
+                }
+            }
         }
-        
+    ]
+);
+
+
+$router->get(
+    '/home',
+    [
+        $Home,
+    ]
+);
+
+$router->get(
+    '/test',
+    [
+        function (Request $request, array $routeValues) {
+            User::drop();
+            User::createTable();
+        }
+
     ]
 );
 //
