@@ -8,12 +8,20 @@ use Lib\services\SingletonServiceCreator;
 $router = SingletonServiceCreator::get(Router::class);
 
 $Auth = function (Request $request, array $routeValues) {
-    session_id($_COOKIE['auth_session_id']);
+    if(isset($_COOKIE['auth_session_idt'])){
+        session_id($_COOKIE['auth_session_id']);
+
+    }
+    else{
+        include ('views/login.php');
+        return false;
+    }
+
 };
 
 $Home = function (Request $request, array $routeValues) {
     $user = $_SESSION['auth_user'];
-    $files = //
+    //$files = //
     include('views/home.php');
 };
 /*
@@ -107,6 +115,7 @@ $router->post(
                         'httponly' => true,    // or false
                     );
                     setcookie('auth_session_id', session_id(), $arr_cookie_options);
+                    $user = (array)$user;
                     $_SESSION['auth_user'] = $user;
 
                     $Home($request, $routeValues);
