@@ -8,14 +8,22 @@ use Lib\services\SingletonServiceCreator;
 $router = SingletonServiceCreator::get(Router::class);
 
 $Auth = function (Request $request, array $routeValues) {
-    session_id($_COOKIE['auth_session_id'];
+    session_id($_COOKIE['auth_session_id']);
 };
 
 $Home = function (Request $request, array $routeValues) {
-//    include()
-//    TODO
+    $user = $_SESSION['auth_user'];
+    $files = //
+    include('views/home.php');
 };
-
+/*
+ * User : id, email, name, password
+ * Folder:  id, user_id, parent_folder_id, name, size, no_of_items
+ * File:    id, user_id, parent_folder_id, name, size, path = user1/folder1/abc.pdf
+ *
+ * User_1 -> (folder1 -> abc.pdf), (folder2 -> abc.pdf), xyz.pdf
+ * User_2 -> ade.pdf,
+ * */
 $router->get(
     '/',
     [
@@ -39,7 +47,7 @@ $router->get(
 $router->post(
     '/login',
     [
-        function (Request $request, array $routeValues) {
+        function (Request $request, array $routeValues) use ($Home) {
             $email = $request->inputs['POST']['email'];
             $password = $request->inputs['POST']['password'];
 
@@ -57,7 +65,11 @@ $router->post(
                     );
                     setcookie('auth_session_id', session_id(), $arr_cookie_options);
                     $_SESSION['auth_user'] = $user;
-                    // TODO
+
+                    $Home($request, $routeValues);
+
+
+
                 } else {
                     $error = 'Invalid Password';
                     include('views/login.php');
@@ -70,7 +82,7 @@ $router->post(
 $router->post(
     '/register',
     [
-        function (Request $request, array $routeValues) {
+        function (Request $request, array $routeValues) use ($Home) {
             $name = $request->inputs['POST']['name'];
 
             $password = $request->inputs['POST']['password'];
@@ -88,7 +100,16 @@ $router->post(
                     $user->email = $email;
                     $user->create();
 
-                    // TODO
+                    session_start();
+                    $arr_cookie_options = array(
+                        'expires' => time() + 86400,
+                        'secure' => false,     // or false
+                        'httponly' => true,    // or false
+                    );
+                    setcookie('auth_session_id', session_id(), $arr_cookie_options);
+                    $_SESSION['auth_user'] = $user;
+
+                    $Home($request, $routeValues);
 
                 } else {
                     $error = 'Email already registered';
@@ -103,6 +124,7 @@ $router->post(
 $router->get(
     '/home',
     [
+        $Auth,
         $Home,
     ]
 );
