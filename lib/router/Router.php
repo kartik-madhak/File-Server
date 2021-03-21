@@ -11,10 +11,6 @@ class Router
      */
     private array $routes = [];
 
-    public function __construct()
-    {
-    }
-
     public function add(string $url, string $method, array $callbacks)
     {
         array_push($this->routes, new Route($url, $method, $callbacks));
@@ -30,7 +26,8 @@ class Router
         $this->add($url, 'POST', $callbacks);
     }
 
-    public function hasRoute($url, $method){
+    public function hasRoute($url, $method)
+    {
         foreach ($this->routes as $route) {
             $hasURL = $route->matches($url, $method);
             if ($hasURL != false) {
@@ -40,12 +37,32 @@ class Router
         return false;
     }
 
-//    public function redirect($url)
-//    {
-//
-//    }
+    public static function getRedirectedData()
+    {
+        session_start();
+        if (isset($_SESSION['redirected_data'])) {
+            $temp = $_SESSION['redirected_data'];
+            unset($_SESSION['redirected_data']);
+            return $temp;
+        }
+        return null;
+    }
 
-    public function run()
+    public static
+    function redirect(
+        $url,
+        $withData = null
+    ) {
+        if ($withData) {
+            session_start();
+            $_SESSION['redirected_data'] = $withData;
+        }
+        header('Location: ' . $url);
+        exit();
+    }
+
+    public
+    function run()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $method = $_SERVER['REQUEST_METHOD'];
@@ -55,18 +72,18 @@ class Router
 //            echo $request->toString();
             $count = count($has['actions']);
             $i = 0;
-            while($i < $count)
-            {
+            while ($i < $count) {
                 $actions = $has['actions'][$i];
                 $ret = $actions($request, $has['values']);
-                if ($ret === false)
+                if ($ret === false) {
                     break;
+                }
                 $i++;
             }
         } else {
             $error = 'Are you sure you visited the right page?';
             http_response_code(404);
-            include ('views/404.php');
+            include('views/404.php');
         }
     }
 }

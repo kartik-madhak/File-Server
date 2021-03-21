@@ -7,23 +7,15 @@ use Lib\services\SingletonServiceCreator;
 /** @var Router $router */
 $router = SingletonServiceCreator::get(Router::class);
 
-$Auth = function (Request $request, array $routeValues) {
-    if(isset($_COOKIE['auth_session_idt'])){
+$Auth = function (Request $request, array $routeValues) use ($router) {
+    if (isset($_COOKIE['auth_session_id'])) {
         session_id($_COOKIE['auth_session_id']);
-
+        session_start();
+    } else {
+        Router::redirect('/login');
     }
-    else{
-        include ('views/login.php');
-        return false;
-    }
-
 };
 
-$Home = function (Request $request, array $routeValues) {
-    $user = $_SESSION['auth_user'];
-    //$files = //
-    include('views/home.php');
-};
 /*
  * User : id, email, name, password
  * Folder:  id, user_id, parent_folder_id, name, size, no_of_items
@@ -35,7 +27,20 @@ $Home = function (Request $request, array $routeValues) {
 $router->get(
     '/',
     [
+        function (Request $request, array $routeValues) use ($router) {
+            Router::redirect('/login');
+        }
+    ]
+);
+
+$router->get(
+    '/login',
+    [
         function (Request $request, array $routeValues) {
+            $data = Router::getRedirectedData();
+            if ($data) {
+                extract($data);
+            }
             include('views/login.php');
         }
 
@@ -46,6 +51,10 @@ $router->get(
     '/register',
     [
         function (Request $request, array $routeValues) {
+            $data = Router::getRedirectedData();
+            if ($data) {
+                extract($data);
+            }
             include('views/register.php');
         }
 
@@ -55,14 +64,14 @@ $router->get(
 $router->post(
     '/login',
     [
-        function (Request $request, array $routeValues) use ($Home) {
+        function (Request $request, array $routeValues) use ($router) {
             $email = $request->inputs['POST']['email'];
             $password = $request->inputs['POST']['password'];
 
             $user = User::query()->select()->where('email', $email)->getFirstOrFalse();
             if ($user == false) {
                 $error = 'Email not registered';
-                include('views/login.php');
+                Router::redirect('/login', compact('email', 'error'));
             } else {
                 if (password_verify($password, $user['password'])) {
                     session_start();
@@ -74,13 +83,10 @@ $router->post(
                     setcookie('auth_session_id', session_id(), $arr_cookie_options);
                     $_SESSION['auth_user'] = $user;
 
-                    $Home($request, $routeValues);
-
-
-
+                    Router::redirect('/home');
                 } else {
                     $error = 'Invalid Password';
-                    include('views/login.php');
+                    Router::redirect('/login', compact('email', 'error'));
                 }
             }
         }
@@ -90,16 +96,16 @@ $router->post(
 $router->post(
     '/register',
     [
-        function (Request $request, array $routeValues) use ($Home) {
+        function (Request $request, array $routeValues) use ($router) {
             $name = $request->inputs['POST']['name'];
+            $email = $request->inputs['POST']['email'];
 
             $password = $request->inputs['POST']['password'];
             if (strlen($password) < 8) {
                 $error = 'Password must be at least 8 characters';
-                include('views/register.php');
+                Router::redirect('/register', compact('name', 'email', 'error'));
             } else {
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $email = $request->inputs['POST']['email'];
 
                 if (User::query()->select()->where('email', $email)->get() == false) {
                     $user = new User;
@@ -115,26 +121,37 @@ $router->post(
                         'httponly' => true,    // or false
                     );
                     setcookie('auth_session_id', session_id(), $arr_cookie_options);
-                    $user = (array)$user;
+                    $user = User::query()->select()->where('email', $email)->getFirstOrFalse();
                     $_SESSION['auth_user'] = $user;
 
-                    $Home($request, $routeValues);
+                    //Make a new database entry for user's root folder.
+                    $folder = new Folder;
+                    $folder->name = 'root';
+                    $folder->user_id = $user['id'];
+                    $folder->no_of_items = 0;
+                    $folder->parent_folder_id = 0;
+                    $folder->size = 0;
+                    $folder->create();
 
+                    Router::redirect('/home');
                 } else {
                     $error = 'Email already registered';
-                    include('views/register.php');
+                    Router::redirect('/register', compact('name', 'email', 'error'));
                 }
             }
         }
     ]
 );
 
-
 $router->get(
     '/home',
     [
         $Auth,
-        $Home,
+        function (Request $request, array $routeValues) {
+            $user = $_SESSION['auth_user'];
+            $root = Folder::query()->select()->where('user_id', $user['id'])->where('parent_folder_id', 0)->getFirstOrFalse();
+            include('views/home.php');
+        }
     ]
 );
 
@@ -142,8 +159,8 @@ $router->get(
     '/test',
     [
         function (Request $request, array $routeValues) {
-            User::drop();
-            User::createTable();
+            File::drop();
+            File::createTable();
         }
 
     ]

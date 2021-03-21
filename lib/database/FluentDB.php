@@ -81,28 +81,21 @@ class FluentDB
     private function deduceTypes(array $arr): array
     {
         $cols = [];
-//        $types = [];
         $cols['id'] = 'INTEGER KEY AUTO_INCREMENT';
-//        array_push($cols, 'id');
         foreach ($arr as $k => $v) {
-//            array_push($cols, $k);
             switch ($v) {
                 case 'int':
                     if ($k != 'id') {
-//                        array_unshift($types, 'INTEGER KEY AUTO_INCREMENT');
-//                    } else {
                         $cols[$k] = 'INTEGER';
-//                        array_push($types, 'INTEGER');
                     }
                     break;
                 case 'string':
                     if ($k != 'created_at' && $k != 'updated_at') {
-//                        var_dump($k, $v);
-//                        array_push($types, 'DATETIME');
-//                    } else {
                         $cols[$k] = 'VARCHAR(200)';
-//                        array_push($types, 'VARCHAR(200)');
                     }
+                    break;
+                case 'float':
+                    $cols[$k] = 'FLOAT';
                     break;
             }
         }

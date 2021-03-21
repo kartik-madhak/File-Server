@@ -20,7 +20,6 @@
             </form>
 
             <div id="error" class="text-danger font-weight-bold"> <?php echo $error ?? '' ?> </div>
-
             <div class="mt-4">
                 <a href="/register">New? Register Here.</a>
             </div>

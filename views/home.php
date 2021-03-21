@@ -2,14 +2,18 @@
 <html lang="en">
 <?php include('layout/head.php') ?>
 <body>
-<h1>This is the home page</h1>
-<p>
-    <?php
-    $user = $user ?? new User();
-    echo 'Welcome' . $user['name'] . '<br>';
-    ?>
-</p>
-<a href="/">Back</a>
+<?php include('layout/navbar.php') ?>
+    <div class="container-fluid">
+        <div class="row mt-5">
+            <div class="col-3">
+<!--                SIDEBAR -->
+            </div>
+            <div class="col">
+<!--                PUT CONTEXT ACTIONS HERE YOU DUMAS -->
 
+
+            </div>
+        </div>
+    </div>
 </body>
 </html>
