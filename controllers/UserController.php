@@ -158,6 +158,9 @@ $router->get(
     '/test',
     [
         function (Request $request, array $routeValues) {
+            Folder::drop();
+            Folder::createTable();
+
             File::drop();
             File::createTable();
         }
