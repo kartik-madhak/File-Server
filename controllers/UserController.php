@@ -149,7 +149,6 @@ $router->get(
         $Auth,
         function (Request $request, array $routeValues) {
             $user = $_SESSION['auth_user'];
-            $root = Folder::query()->select()->where('user_id', $user['id'])->where('parent_folder_id', 0)->getFirstOrFalse();
             include('views/home.php');
         }
     ]
