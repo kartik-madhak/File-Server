@@ -7,7 +7,8 @@ use Lib\services\SingletonServiceCreator;
 /** @var Router $router */
 $router = SingletonServiceCreator::get(Router::class);
 
-$Auth = function (Request $request, array $routeValues) use ($router) {
+$Auth = function (Request $request, array $routeValues) {
+
     if (isset($_COOKIE['auth_session_id'])) {
         session_id($_COOKIE['auth_session_id']);
         session_start();
@@ -16,18 +17,10 @@ $Auth = function (Request $request, array $routeValues) use ($router) {
     }
 };
 
-/*
- * User : id, email, name, password
- * Folder:  id, user_id, parent_folder_id, name, size, no_of_items
- * File:    id, user_id, parent_folder_id, name, size, path = user1/folder1/abc.pdf
- *
- * User_1 -> (folder1 -> abc.pdf), (folder2 -> abc.pdf), xyz.pdf
- * User_2 -> ade.pdf,
- * */
 $router->get(
     '/',
     [
-        function (Request $request, array $routeValues) use ($router) {
+        function (Request $request, array $routeValues)  {
             Router::redirect('/login');
         }
     ]
@@ -64,7 +57,7 @@ $router->get(
 $router->post(
     '/login',
     [
-        function (Request $request, array $routeValues) use ($router) {
+        function (Request $request, array $routeValues)  {
             $email = $request->inputs['POST']['email'];
             $password = $request->inputs['POST']['password'];
 
@@ -96,7 +89,7 @@ $router->post(
 $router->post(
     '/register',
     [
-        function (Request $request, array $routeValues) use ($router) {
+        function (Request $request, array $routeValues)  {
             $name = $request->inputs['POST']['name'];
             $email = $request->inputs['POST']['email'];
 
@@ -123,7 +116,7 @@ $router->post(
                     setcookie('auth_session_id', session_id(), $arr_cookie_options);
                     $user = User::query()->select()->where('email', $email)->getFirstOrFalse();
                     $_SESSION['auth_user'] = $user;
-
+//
                     //Make a new database entry for user's root folder.
                     $folder = new Folder;
                     $folder->name = 'root';
@@ -165,6 +158,19 @@ $router->get(
             File::createTable();
         }
 
+    ]
+);
+
+$router->post(
+    '/logout',
+    [
+        function (Request $request, array $routeValues)  {
+            if (isset($_COOKIE['auth_session_id'])) {
+                setcookie("auth_session_id", "", time()-3600);
+                unset($_COOKIE['auth_session_id']);
+            }
+            Router::redirect('/login');
+        }
     ]
 );
 //

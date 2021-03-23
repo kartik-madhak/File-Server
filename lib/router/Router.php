@@ -11,6 +11,24 @@ class Router
      */
     private array $routes = [];
 
+    public function remove(string $url, string $method = 'GET')
+    {
+        foreach ($this->routes as $k => $route) {
+            if ($route->getUrl() === $url && $route->getMethod() === $method) {
+                unset($this->routes[$k]);
+            }
+        }
+    }
+
+    public function allUrls(): array
+    {
+        $urlArr = [];
+        foreach ($this->routes as $k => $route) {
+            $urlArr[] = $route->getUrl();
+        }
+        return $urlArr;
+    }
+
     public function add(string $url, string $method, array $callbacks)
     {
         array_push($this->routes, new Route($url, $method, $callbacks));
@@ -68,7 +86,7 @@ class Router
         $method = $_SERVER['REQUEST_METHOD'];
         $has = $this->hasRoute($url, $method);
         if ($has) {
-            $request = new Request(['GET' => $_GET, 'POST' => $_POST]);
+            $request = new Request(['GET' => $_GET, 'POST' => $_POST, 'FILES' => $_FILES]);
 //            echo $request->toString();
             $count = count($has['actions']);
             $i = 0;

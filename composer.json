@@ -2,7 +2,8 @@
     "require": {
         "vlucas/phpdotenv": "^5.3",
       "ext-mysqli": "*",
-      "ext-json": "*"
+      "ext-json": "*",
+      "ext-zip": "*"
     },
     "autoload": {
         "psr-4": {
