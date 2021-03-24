@@ -219,6 +219,10 @@ class DriveHandler {
                         _thisRef.rootFolder = Object.assign(new Folder, data.mainFolder)
                         _thisRef.addEntitiesFromAPI([data.folder], null)
                         _thisRef.showInfo()
+                        folderInput.val('')
+                        folderInput.removeClass('border-danger')
+                        folderNameLabel.innerText = 'Write a name for the folder'
+                        folderNameLabel.style.color = 'black'
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
@@ -249,7 +253,9 @@ class DriveHandler {
                     _thisRef.rootFolder = Object.assign(new Folder, data.mainFolder)
                     _thisRef.addEntitiesFromAPI(null, data.files)
                     _thisRef.showInfo()
-                    // $(document.getElementById("files_to_upload")).val('')
+                    document.getElementById("files_to_upload").value = ''
+                    $('#files_to_upload_label')[0].innerText = 'Write a name for the folder'
+                    $('#files_to_upload_label')[0].classList.remove('text-danger')
                     $('#uploadFilesModal').modal('hide')
                 } else {
                     $('#files_to_upload_label')[0].innerText = data.error
