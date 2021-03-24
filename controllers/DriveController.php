@@ -66,7 +66,31 @@ $router->post(
                 'parent_folder_id',
                 $_SESSION['auth_user_current_folder']
             )->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
-            echo json_encode(['msg' => 'success', 'folder' => $res]);
+
+            $current_folder_id = $_SESSION['auth_user_current_folder'];
+            do
+            {
+                /** @var Folder $folder */
+                $folder = (object) Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
+
+                $newFolder = new Folder;
+                $newFolder->id = $folder->id;
+                $newFolder->name = $folder->name;
+                $newFolder->no_of_items = $folder->no_of_items;
+                $newFolder->parent_folder_id = $folder->parent_folder_id;
+                $newFolder->size = $folder->size;
+                $newFolder->user_id = $folder->user_id;
+                $newFolder->created_at = $folder->created_at;
+                $newFolder->updated_at = $folder->updated_at;
+
+                $newFolder->no_of_items += 1;
+                $newFolder->save();
+                $current_folder_id = $newFolder->parent_folder_id;
+            } while($current_folder_id !== 0);
+            $mainFolder = Folder::query()->select()->where('id', $_SESSION['auth_user_current_folder'])
+                ->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
+
+            echo json_encode(['msg' => 'success', 'folder' => $res, 'mainFolder' => $mainFolder]);
         }
 
     ]
@@ -95,7 +119,7 @@ $router->post(
                 ) {
                     echo json_encode(
                         [
-                            'msg' => 'error',
+                            'msg' => 'FAILED',
                             'error' => 'One or more files have the same name as one of the existing files.'
                         ]
                     );
@@ -103,7 +127,7 @@ $router->post(
                 }
 
                 if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-                    echo json_encode(['msg' => 'FAILED', 'file' => $file]);
+                    echo json_encode(['msg' => 'FAILED', 'file' => $file, 'error' => 'Failed to upload to the server']);
                     return;
                 }
 
@@ -115,13 +139,38 @@ $router->post(
                 $newFile->user_id = $_SESSION['auth_user']['id'];
                 $newFile->create();
 
+                $current_folder_id = $_SESSION['auth_user_current_folder'];
+                do
+                {
+                    /** @var Folder $folder */
+                    $folder = (object) Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
+
+                    $newFolder = new Folder;
+                    $newFolder->id = $folder->id;
+                    $newFolder->name = $folder->name;
+                    $newFolder->no_of_items = $folder->no_of_items;
+                    $newFolder->parent_folder_id = $folder->parent_folder_id;
+                    $newFolder->size = $folder->size;
+                    $newFolder->user_id = $folder->user_id;
+                    $newFolder->created_at = $folder->created_at;
+                    $newFolder->updated_at = $folder->updated_at;
+
+                    $newFolder->size += $newFile->size;
+                    $newFolder->no_of_items += 1;
+                    $newFolder->save();
+                    $current_folder_id = $newFolder->parent_folder_id;
+                } while($current_folder_id !== 0);
+
                 $res[] = File::query()->select()->where('path', $filePath)->where(
                     'parent_folder_id',
                     $_SESSION['auth_user_current_folder']
                 )->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
             }
             $files = $res;
-            echo json_encode(compact('files'));
+            $mainFolder = Folder::query()->select()->where('id', $_SESSION['auth_user_current_folder'])
+                ->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
+            $msg = 'SUCCESS';
+            echo json_encode(compact('files', 'mainFolder'));
         }
     ]
 );

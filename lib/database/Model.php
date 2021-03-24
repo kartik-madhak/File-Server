@@ -48,7 +48,7 @@ abstract class Model
     {
         $fluentDB = new FluentDB(get_called_class());
         $array = get_object_vars($this);
-        $array['created_at'] = $array['updated_at'] = date('Y-m-d H:i:s', time());
+        $array['updated_at'] = date('Y-m-d H:i:s', time());
         $fluentDB->update($array);
     }
 }

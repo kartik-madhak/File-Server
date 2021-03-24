@@ -193,17 +193,18 @@ class DriveHandler {
     addFolder() {
         const folderInput = $('#folderAdd_folderName')
         const folderName = folderInput.val()
+        const folderNameLabel = $('#folderAdd_folderName_label')[0];
         if (folderName.length === 0) {
             folderInput.addClass('border-danger')
-            folderInput[0].innerText = 'Folder name cannot be empty'
-            folderInput[0].style.color = 'red'
+            folderNameLabel.innerText = 'Folder name cannot be empty'
+            folderNameLabel.style.color = 'red'
         } else {
             if (this.folders.find(function (folder) {
                 return (folder.name === folderName)
             })) {
                 folderInput.addClass('border-danger')
-                folderInput.innerText = 'Folder name must be unique inside each directory'
-                folderInput.style.color = 'red'
+                folderNameLabel.innerText = 'Folder name must be unique inside each directory'
+                folderNameLabel.style.color = 'red'
             } else {
                 $('#addFolderModal').modal('hide')
                 console.log(folderName)
@@ -215,7 +216,9 @@ class DriveHandler {
                     dataType: 'json',
                     data: {'folder_name': folderName},
                     success: function (data, status) {
+                        _thisRef.rootFolder = Object.assign(new Folder, data.mainFolder)
                         _thisRef.addEntitiesFromAPI([data.folder], null)
+                        _thisRef.showInfo()
                     },
                     error: function (xhr, ajaxOptions, thrownError) {
                         console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
@@ -241,14 +244,20 @@ class DriveHandler {
             contentType: false,
             processData: false,
             success: function (data, status) {
-                console.log('HI THERE')
-
-                _thisRef.addEntitiesFromAPI(null, data.files)
-
-                $('#uploadFilesModal').modal('hide')
+                console.log(data)
+                if(data.msg !== 'FAILED') {
+                    _thisRef.rootFolder = Object.assign(new Folder, data.mainFolder)
+                    _thisRef.addEntitiesFromAPI(null, data.files)
+                    _thisRef.showInfo()
+                    // $(document.getElementById("files_to_upload")).val('')
+                    $('#uploadFilesModal').modal('hide')
+                } else {
+                    $('#files_to_upload_label')[0].innerText = data.error
+                    $('#files_to_upload_label')[0].classList.add('text-danger')
+                }
             },
-            error: function (xhr, ajaxOptions, thrownError) {
-                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
+            error: function (data) {
+                $('#files_to_upload_label')[0].innerText = data.msg;
             }
         })
     }
@@ -263,7 +272,7 @@ class DriveHandler {
 
                 values = {
                     'name': folder.name,
-                    'size': folder.size / 1024 + ' KB',
+                    'size': (folder.size / (1024 * 1024)).toFixed(2) + ' MB',
                     'created': folder.created_at,
                     'updated': folder.updated_at,
                     'number of items inside': folder.no_of_items
@@ -273,7 +282,7 @@ class DriveHandler {
 
                 values = {
                     'name': file.name,
-                    'size': file.size / 1024 + ' KB',
+                    'size': (file.size / (1024 * 1024)).toFixed(2) + ' MB',
                     'created': file.created_at,
                     'updated': file.updated_at,
                 }
@@ -282,7 +291,7 @@ class DriveHandler {
             let folder = this.rootFolder
             values = {
                 'name': folder.name,
-                'size': folder.size / 1024 + ' KB',
+                'size': (folder.size / (1024 * 1024)).toFixed(2) + ' MB',
                 'created': folder.created_at,
                 'updated': folder.updated_at,
                 'number of items inside': folder.no_of_items
@@ -325,6 +334,6 @@ class DriveHandler {
 
 $(
     function () {
-        driveHandler = new DriveHandler()
+        new DriveHandler()
     }
 )
