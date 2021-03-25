@@ -32,12 +32,14 @@ class DriveHandler {
         this.files = []
         this.app = $('#app')
         this.loadFolder(0)
+        // this.loadFolderStructure()
 
         let _thisRef = this
         this.app.click(function () {
             $(_thisRef.selectedEntity).removeClass("blue-highlight")
             _thisRef.selectedEntity = false
             $('#file_download_button').addClass('disabled')
+            $('#file_rename_button').addClass('disabled')
             _thisRef.showInfo()
         })
 
@@ -61,21 +63,67 @@ class DriveHandler {
 
             // Download button enable / disable
             let downloadButton = $('#file_download_button')
+            let renameButton = $('#file_rename_button')
             if (_thisRef.selectedEntity) {
                 downloadButton.removeClass("disabled")
+                renameButton.removeClass("disabled")
             } else {
                 downloadButton.addClass("disabled")
+                renameButton.addClass("disabled")
             }
 
             _thisRef.showInfo()
             return false
         })
 
+        $('#rename_entity_button').on('click', () => this.rename())
         $('#drive_handle_back').on('click', () => this.back())
         $('#file_download_button').on('click', () => this.download())
         $('#folder_add_button').on('click', () => this.addFolder())
         $('#files_upload_button').on('click', () => this.uploadFiles())
     }
+
+    rename(){
+        let newName = $('#rename_entity_input').val()
+        let _thisRef = this
+        let index = $(this.selectedEntity).data('index')
+        let type = 'folder'
+        let id = $(this.selectedEntity).attr('id')
+        if (id.includes('file'))
+            type = 'file'
+        $.ajax({
+            url: '/rename',
+            type: 'POST',
+            dataType: 'json',
+            data: {'type': type, 'id': id.split('_')[1], name: newName },
+            success: function (data, status) {
+                _thisRef.folders[index].name = newName
+                $('#renameEntitiesModal').modal('hide')
+                _thisRef.display()
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
+            }
+        })
+    }
+
+    // loadFolderStructure() {
+    //     $.ajax({
+    //         url: '/folders/structure',
+    //         type: 'GET',
+    //         dataType: 'json',
+    //         success: function (data, status) {
+    //             let folderStructure = data.folderStructure
+    //             console.log(folderStructure)
+    //
+    //             DriveHandler.#recursiveIteration(folderStructure)
+    //             // $('#folder_structure').html()
+    //         },
+    //         error: function (xhr, ajaxOptions, thrownError) {
+    //             console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
+    //         }
+    //     })
+    // }
 
     addEntitiesFromAPI(folders, files) {
         if (folders != null) {
@@ -249,7 +297,7 @@ class DriveHandler {
             processData: false,
             success: function (data, status) {
                 console.log(data)
-                if(data.msg !== 'FAILED') {
+                if (data.msg !== 'FAILED') {
                     _thisRef.rootFolder = Object.assign(new Folder, data.mainFolder)
                     _thisRef.addEntitiesFromAPI(null, data.files)
                     _thisRef.showInfo()

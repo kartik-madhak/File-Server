@@ -68,10 +68,9 @@ $router->post(
             )->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
 
             $current_folder_id = $_SESSION['auth_user_current_folder'];
-            do
-            {
+            do {
                 /** @var Folder $folder */
-                $folder = (object) Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
+                $folder = (object)Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
 
                 $newFolder = new Folder;
                 $newFolder->id = $folder->id;
@@ -86,7 +85,7 @@ $router->post(
                 $newFolder->no_of_items += 1;
                 $newFolder->save();
                 $current_folder_id = $newFolder->parent_folder_id;
-            } while($current_folder_id !== 0);
+            } while ($current_folder_id !== 0);
             $mainFolder = Folder::query()->select()->where('id', $_SESSION['auth_user_current_folder'])
                 ->where('user_id', $_SESSION['auth_user']['id'])->getFirstOrFalse();
 
@@ -140,10 +139,9 @@ $router->post(
                 $newFile->create();
 
                 $current_folder_id = $_SESSION['auth_user_current_folder'];
-                do
-                {
+                do {
                     /** @var Folder $folder */
-                    $folder = (object) Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
+                    $folder = (object)Folder::query()->select()->where('id', $current_folder_id)->getFirstOrFalse();
 
                     $newFolder = new Folder;
                     $newFolder->id = $folder->id;
@@ -159,7 +157,7 @@ $router->post(
                     $newFolder->no_of_items += 1;
                     $newFolder->save();
                     $current_folder_id = $newFolder->parent_folder_id;
-                } while($current_folder_id !== 0);
+                } while ($current_folder_id !== 0);
 
                 $res[] = File::query()->select()->where('path', $filePath)->where(
                     'parent_folder_id',
@@ -199,6 +197,61 @@ $router->get(
     ]
 );
 
+function recursiveAssignFolderStructure(array &$folderStructure, int $id, string $name)
+{
+    $folders = Folder::query()->select()
+        ->where('user_id', $_SESSION['auth_user']['id'])
+        ->where('parent_folder_id', $id)->get();
+
+    if (!isset($folderStructure[$id])) {
+        $folderStructure[$id]['name'] = $name;
+    }
+
+
+    for ($i = 0; $i < count($folders); $i++) {
+        recursiveAssignFolderStructure($folderStructure[$id], $folders[$i]['id'], $folders[$i]['name']);
+    }
+}
+
+$router->get(
+    '/folders/structure',
+    [
+        $Auth,
+        function (Request $request, array $routeValues) {
+            $mainFolder = Folder::query()->select()
+                ->where('user_id', $_SESSION['auth_user']['id'])
+                ->where('parent_folder_id', 0)->getFirstOrFalse();
+            $folderStructure = [];
+            recursiveAssignFolderStructure($folderStructure, $mainFolder['id'], $mainFolder['name']);
+            echo json_encode(compact('folderStructure'));
+//            dd($folderStructure);
+        }
+    ]
+);
+
+$router->post(
+    '/rename',
+    [
+        $Auth,
+        function (Request $request, array $routeValues) {
+            $type = $request->inputs['POST']['type'];
+            $id = $request->inputs['POST']['id'];
+            $newName = $request->inputs['POST']['name'];
+            if ($type === 'file') {
+                $file = new File;
+                $file->id = $id;
+                $file->name = $newName;
+                $file->save();
+            } else {
+                $folder = new Folder;
+                $folder->id = $id;
+                $folder->name = $newName;
+                $folder->save();
+            }
+            echo json_encode(['msg' => 'success']);
+        }
+    ]
+);
 
 $router->get(
     '/download/folder/{folderId}',

@@ -5,16 +5,23 @@
 <?php include('layout/navbar.php') ?>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2">
-            <div>
+<!--        <div class="col-md-2">-->
+<!--            <div>-->
                 <!-- SIDEBAR -->
-            </div>
-        </div>
+<!--                <div id="folder_structure">-->
+<!---->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
         <div class="col-md">
             <div class="text-right mr-3">
                 <!-- PUT CONTEXT ACTIONS HERE YOU DUMAS -->
                 <button class="btn btn-sm" id="drive_handle_back">
                     <span class="fas fa-angle-left fa-2x" >
+                    </span>
+                </button>
+                <button class="btn btn-sm disabled" id="file_rename_button" onclick="$('#renameEntitiesModal').modal('show');">
+                    <span class="fas fa-edit fa-2x">
                     </span>
                 </button>
                 <button class="btn btn-sm disabled" id="file_download_button">
@@ -90,6 +97,29 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="files_upload_button">Upload Files</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Entity Modal -->
+    <div id="renameEntitiesModal" class="modal fade" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Choose Files</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="files_to_upload" id="rename_entity_label">Write the new name</label>
+                    <input type="text" placeholder="Rename to" class="form-control"
+                           id="rename_entity_input">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="rename_entity_button">Rename</button>
                 </div>
             </div>
         </div>

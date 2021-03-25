@@ -8,7 +8,6 @@ use Lib\services\SingletonServiceCreator;
 $router = SingletonServiceCreator::get(Router::class);
 
 $Auth = function (Request $request, array $routeValues) {
-
     if (isset($_COOKIE['auth_session_id'])) {
         session_id($_COOKIE['auth_session_id']);
         session_start();
@@ -20,7 +19,7 @@ $Auth = function (Request $request, array $routeValues) {
 $router->get(
     '/',
     [
-        function (Request $request, array $routeValues)  {
+        function (Request $request, array $routeValues) {
             Router::redirect('/login');
         }
     ]
@@ -57,7 +56,7 @@ $router->get(
 $router->post(
     '/login',
     [
-        function (Request $request, array $routeValues)  {
+        function (Request $request, array $routeValues) {
             $email = $request->inputs['POST']['email'];
             $password = $request->inputs['POST']['password'];
 
@@ -89,7 +88,7 @@ $router->post(
 $router->post(
     '/register',
     [
-        function (Request $request, array $routeValues)  {
+        function (Request $request, array $routeValues) {
             $name = $request->inputs['POST']['name'];
             $email = $request->inputs['POST']['email'];
 
@@ -136,12 +135,13 @@ $router->post(
     ]
 );
 
+
+
 $router->get(
     '/home',
     [
         $Auth,
         function (Request $request, array $routeValues) {
-            $user = $_SESSION['auth_user'];
             include('views/home.php');
         }
     ]
@@ -164,9 +164,9 @@ $router->get(
 $router->post(
     '/logout',
     [
-        function (Request $request, array $routeValues)  {
+        function (Request $request, array $routeValues) {
             if (isset($_COOKIE['auth_session_id'])) {
-                setcookie("auth_session_id", "", time()-3600);
+                setcookie("auth_session_id", "", time() - 3600);
                 unset($_COOKIE['auth_session_id']);
             }
             Router::redirect('/login');
