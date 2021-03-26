@@ -156,6 +156,9 @@ $router->get(
 
             File::drop();
             File::createTable();
+			
+			User::drop();
+			User::createTable();
         }
 
     ]
