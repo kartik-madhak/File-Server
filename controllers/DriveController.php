@@ -23,7 +23,96 @@ $Auth = function (Request $request, array $routeValues) use ($router) {
  *
  * User_1 -> (folder1 -> abc.pdf), (folder2 -> abc.pdf), xyz.pdf
  * User_2 -> ade.pdf,
+ /folder/1/file/2
  * */
+
+function recursiveDelete($id, $type)
+{
+    if ($type == 'file') {
+        /** @var File $file */
+        $file = File::query()->select()->where('id', $id)->getFirstOrFalse();
+        $path =  $_SERVER["DOCUMENT_ROOT"] . '/' . $file['path'];
+        unlink($path);
+
+        $m_File = new File;
+        $m_File->id = $file['id'];
+        $m_File->delete();
+    } else {
+        $folders = Folder::query()->select()->where('parent_folder_id', $id)->get();
+        foreach ($folders as $folder)
+        {
+            if(isset($folder))
+                recursiveDelete($folder['id'], 'folder');
+        }
+        $files = File::query()->select()->where('parent_folder_id', $id)->get();
+        foreach ($files as $file)
+        {
+            if(isset($file))
+                recursiveDelete($file['id'], 'file');
+        }
+
+        $folder = new Folder;
+        $folder->id = $id;
+        $folder->delete();
+    }
+}
+
+//$router->get(
+//    '/delete/{type}/{id}',
+//    [
+//        $Auth,
+//        function (Request $request, array $routeValues) {
+//            $type = $routeValues['type'];
+//            $id = $routeValues['id'];
+//
+//            $folder = Folder::query()->select()->where('id', $id)->getFirstOrFalse();
+//            $parentFolderId = $folder['parent_folder_id'];
+//            $parentFolder = Folder::query()->select()->where('id', $parentFolderId)->getFirstOrFalse();
+//
+//            recursiveDelete($id, $type);
+//
+//            $m_Folder = new Folder;
+//            $m_Folder->id = $parentFolder['id'];
+//            $m_Folder->no_of_items = $parentFolder['no_of_items'] - $folder['no_of_items'];
+//            $m_Folder->save();
+//
+//            echo json_encode(['msg' => 'success']);
+//        }
+//    ]
+//);
+
+$router->post(
+    '/delete',
+    [
+        $Auth,
+        function (Request $request, array $routeValues) {
+            $type = $request->inputs['POST']['type'];
+            $id = $request->inputs['POST']['id'];
+
+            if($type == 'folder') {
+                $folder = Folder::query()->select()->where('id', $id)->getFirstOrFalse();
+                $parentFolderId = $folder['parent_folder_id'];
+            }
+            else {
+                $file = File::query()->select()->where('id', $id)->getFirstOrFalse();
+                $parentFolderId = $file['parent_folder_id'];
+            }
+            $parentFolder = Folder::query()->select()->where('id', $parentFolderId)->getFirstOrFalse();
+
+            recursiveDelete($id, $type);
+
+            $m_Folder = new Folder;
+            $m_Folder->id = $parentFolder['id'];
+            if($type == 'folder')
+                $m_Folder->no_of_items = $parentFolder['no_of_items'] - $folder['no_of_items'];
+            else $m_Folder->no_of_items = $parentFolder['no_of_items'] - 1;
+            $m_Folder->save();
+
+            echo json_encode(['msg' => 'success']);
+        }
+    ]
+);
+
 $router->post(
     '/folder/{folderId}',
     [

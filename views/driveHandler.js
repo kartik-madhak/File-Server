@@ -25,6 +25,20 @@ class File extends Entity {
 }
 
 class DriveHandler {
+    #OnUnselect()
+    {
+        $('#file_download_button').addClass('d-none')
+        $('#file_rename_button').addClass('d-none')
+        $('#drive_handle_delete').addClass('d-none')
+    }
+
+    #OnSelect()
+    {
+        $('#file_download_button').removeClass('d-none')
+        $('#file_rename_button').removeClass('d-none')
+        $('#drive_handle_delete').removeClass('d-none')
+    }
+
     constructor() {
         this.rootFolder = null
         this.selectedEntity = null
@@ -38,8 +52,9 @@ class DriveHandler {
         this.app.click(function () {
             $(_thisRef.selectedEntity).removeClass("blue-highlight")
             _thisRef.selectedEntity = false
-            $('#file_download_button').addClass('disabled')
-            $('#file_rename_button').addClass('disabled')
+
+            _thisRef.#OnUnselect();
+
             _thisRef.showInfo()
         })
 
@@ -62,20 +77,17 @@ class DriveHandler {
             }
 
             // Download button enable / disable
-            let downloadButton = $('#file_download_button')
-            let renameButton = $('#file_rename_button')
             if (_thisRef.selectedEntity) {
-                downloadButton.removeClass("disabled")
-                renameButton.removeClass("disabled")
+                _thisRef.#OnSelect();
             } else {
-                downloadButton.addClass("disabled")
-                renameButton.addClass("disabled")
+                _thisRef.#OnUnselect();
             }
 
             _thisRef.showInfo()
             return false
         })
 
+        $('#drive_handle_delete').on('click', () => this.delete())
         $('#rename_entity_button').on('click', () => this.rename())
         $('#drive_handle_back').on('click', () => this.back())
         $('#file_download_button').on('click', () => this.download())
@@ -239,6 +251,7 @@ class DriveHandler {
     }
 
     addFolder() {
+        let _thisRef = this;
         const folderInput = $('#folderAdd_folderName')
         const folderName = folderInput.val()
         const folderNameLabel = $('#folderAdd_folderName_label')[0];
@@ -376,13 +389,38 @@ class DriveHandler {
     }
 
     download() {
-        let _thisRef = this
         let index = $(this.selectedEntity).data('index')
         if ($(this.selectedEntity).attr('id').includes('file')) {
-            window.location = '/download/file/' + _thisRef.files[index].id
+            window.location = '/download/file/' + this.files[index].id
         } else {
-            window.location = '/download/folder/' + _thisRef.folders[index].id
+            window.location = '/download/folder/' + this.folders[index].id
         }
+    }
+
+    delete() {
+        let _thisRef = this;
+        let index = $(this.selectedEntity).data('index')
+        let type = 'folder'
+        let id = $(this.selectedEntity).attr('id')
+        if (id.includes('file'))
+            type = 'file'
+        $.ajax({
+            url: '/delete',
+            type: 'POST',
+            dataType: 'json',
+            data: {'type': type, 'id': id.split('_')[1]},
+            success: function (data, status) {
+                _thisRef.folders.splice(index, 1)
+                _thisRef.display()
+                _thisRef.selectedEntity = null
+                _thisRef.loadFolder(_thisRef.rootFolder);
+                _thisRef.#OnUnselect()
+                _thisRef.showInfo()
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText)
+            }
+        })
     }
 }
 

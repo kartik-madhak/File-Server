@@ -15,16 +15,20 @@
 <!--        </div>-->
         <div class="col-md">
             <div class="text-right mr-3">
-                <!-- PUT CONTEXT ACTIONS HERE YOU DUMAS -->
+                <!-- PUT CONTEXT ACTIONS HERE -->
                 <button class="btn btn-sm" id="drive_handle_back">
                     <span class="fas fa-angle-left fa-2x" >
                     </span>
                 </button>
-                <button class="btn btn-sm disabled" id="file_rename_button" onclick="$('#renameEntitiesModal').modal('show');">
+                <button class="btn btn-sm d-none" id="drive_handle_delete">
+                    <span class="fas fa-trash fa-2x" >
+                    </span>
+                </button>
+                <button class="btn btn-sm d-none" id="file_rename_button" onclick="$('#renameEntitiesModal').modal('show');">
                     <span class="fas fa-edit fa-2x">
                     </span>
                 </button>
-                <button class="btn btn-sm disabled" id="file_download_button">
+                <button class="btn btn-sm d-none" id="file_download_button">
                     <span class="fas fa-file-download fa-2x">
                     </span>
                 </button>

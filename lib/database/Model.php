@@ -49,6 +49,12 @@ abstract class Model
         $fluentDB = new FluentDB(get_called_class());
         $array = get_object_vars($this);
         $array['updated_at'] = date('Y-m-d H:i:s', time());
-        $fluentDB->update($array);
+        $fluentDB->update($array)->where('id', $this->id)->get();
+    }
+
+    public function delete()
+    {
+        $fluentDB = new FluentDB(get_called_class());
+        $fluentDB->delete()->where('id', $this->id)->get();
     }
 }
